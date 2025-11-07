@@ -61,7 +61,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 @TeleOp(name = "StarterBotTeleop", group = "StarterBot")
 //@Disabled
 public class StarterBotTeleop extends OpMode {
-    final double FEED_TIME_SECONDS = 0.25;
+    final double FEED_TIME_SECONDS = 0.4;
     final double STOP_SPEED = 0.04; // adjust until jitter disappears
     final double FULL_SPEED = 2.0;
     final double minusFULL = -2.0;
@@ -72,8 +72,8 @@ public class StarterBotTeleop extends OpMode {
      * velocity. Here we are setting the target, and minimum velocity that the launcher should run
      * at. The minimum velocity is a threshold for determining when to fire.
      */
-    final double LAUNCHER_TARGET_VELOCITY = 3040; // rpm
-    final double LAUNCHER_MIN_VELOCITY =1000;
+    final double LAUNCHER_TARGET_VELOCITY = 1130; // rpm
+    final double LAUNCHER_MIN_VELOCITY =1030;
 
     // Declare OpMode members.
     private DcMotor leftDrive = null;
@@ -217,23 +217,25 @@ telemetry.update();
          */
         // Default single-driver arcade drive
         // Scale factor to slow down the robot
-        double speedScale = 0.75;
-
+        double speedScale = 0.9;
         // Gamepad 1 inputs
-        double forward1 = (gamepad1.left_trigger - gamepad1.right_trigger) * speedScale;
-        double turn1    = -gamepad1.left_stick_x * speedScale;
-
+        double forward1 = (gamepad1.right_trigger - gamepad1.left_trigger) * speedScale;
+        double turn1    = -gamepad1.right_stick_x * speedScale;
+        
         // Gamepad 2 inputs
-        double forward2 = (gamepad2.left_trigger - gamepad2.right_trigger) * speedScale;
-        double turn2    = -gamepad2.left_stick_x * speedScale;
+        double forward2 = (gamepad2.right_trigger - gamepad2.left_trigger) * speedScale;
+        double turn2    = -gamepad2.right_stick_x * speedScale;
 
         // Blend both drivers' inputs (average)
         double forward = (forward1 + forward2) / 2.0;
         double turn    = (turn1 + turn2) / 2.0;
+        
 
 // Optional: deadband to prevent drift from tiny stick movements
 if (Math.abs(turn) < 0.05) {
+    
     turn = 0;
+    
 }
 
 // Drive the robot
@@ -244,7 +246,7 @@ arcadeDrive(forward, turn);
          * Here we give the user control of the speed of the launcher motor without automatically
          * queuing a shot.
          */
-        if (gamepad1.left_bumper) {
+        if (gamepad1.dpad_up) {
             launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
             launchState = LaunchState.SPIN_UP;
             leftFeeder.setPower(FULL_SPEED);
@@ -252,7 +254,7 @@ arcadeDrive(forward, turn);
         } else if (gamepad1.b) { // stop flywheel
             launcher.setVelocity(STOP_SPEED);
         }
-         if (gamepad2.left_bumper) {
+         if (gamepad2.dpad_up) {
             launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
             launchState = LaunchState.SPIN_UP;
             leftFeeder.setPower(FULL_SPEED);
@@ -260,7 +262,14 @@ arcadeDrive(forward, turn);
 
         } else if (gamepad2.b) { // stop flywheel
             launcher.setVelocity(STOP_SPEED);
+        
         }
+          else if (gamepad2.dpad_right) {
+              launcher.setVelocity(LAUNCHER_MIN_VELOCITY);
+          }
+          else if (gamepad1.dpad_right) {
+              launcher.setVelocity(LAUNCHER_MIN_VELOCITY);
+          }
         /*
          * Now we call our "Launch" function.
          */
